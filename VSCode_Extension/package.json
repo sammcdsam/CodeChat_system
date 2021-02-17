@@ -47,6 +47,7 @@
         "@types/escape-html": "^1.0.0",
         "@types/thrift": "^0.10.10",
         "@types/vscode": "^1.51.0",
+        "node-pty": "^0.10.0",
         "tslint": "^5.16.0",
         "typescript": "^3.9.7",
         "vscode-test": "^1.5.0"

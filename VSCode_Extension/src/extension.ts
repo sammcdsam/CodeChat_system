@@ -33,11 +33,11 @@
 // Node.js packages
 // ----------------
 import assert = require('assert');
-import child_process = require('child_process');
 
 // Third-party packages
 // --------------------
 import escape = require('escape-html');
+import node_pty_types = require('node-pty');
 import shlex = require('shlex');
 import thrift = require('thrift');
 import vscode = require('vscode');
@@ -46,6 +46,29 @@ import vscode = require('vscode');
 // --------------
 import EditorPlugin = require('./gen-nodejs/EditorPlugin');
 import ttypes = require('./gen-nodejs/CodeChat_Services_types');
+
+// Package with native code built into VSCode
+// ------------------------------------------
+// Copied from https://github.com/microsoft/vscode/issues/84439.
+/**
+ * Returns a node module installed with VSCode, or null if it fails.
+ */
+function getCoreNodeModule(moduleName: string) {
+    try {
+        return require(`${vscode.env.appRoot}/node_modules.asar/${moduleName}`);
+    } catch (err) { }
+
+    try {
+        return require(`${vscode.env.appRoot}/node_modules/${moduleName}`);
+    } catch (err) { }
+
+    return null;
+}
+
+let node_pty = getCoreNodeModule('node-pty');
+if (!node_pty) {
+    vscode.window.showErrorMessage("CodeChat: Unable to import node-pty from built-in VSCode libraries.");
+}
 
 // Globals
 // =======
@@ -374,15 +397,17 @@ function create_CodeChat_terminal() {
     // These emitters allow us to fire events (write and close) programmatically.
     const writeEmitter = new vscode.EventEmitter<string>();
     const closeEmitter = new vscode.EventEmitter<number>();
-    let server_process: child_process.ChildProcess | undefined = undefined;
+    const dimensionsEmitter = new vscode.EventEmitter<vscode.TerminalDimensions | undefined>();
+    let server_process: node_pty_types.IPty | undefined = undefined;
+    let exit_code: number | undefined = undefined;
 
     const is_server_running = () => {
-        return server_process?.exitCode === null;
+        return (server_process !== undefined) && (exit_code === undefined);
     }
 
     const run_server = () => {
         // If the server is already running, return.
-        if (is_server_running()) {
+        if (is_server_running() || !node_pty) {
             return;
         }
 
@@ -395,29 +420,51 @@ function create_CodeChat_terminal() {
 
         // Run it in a VSCode terminal.
         assert(typeof command === "string");
-        writeEmitter.fire(`\x1B[1m> Executing the CodeChat Server: ${command} ${args.join(" ")} <\n\r\n\rPress any key to stop the server.\x1B[0m\n\r\n\r`)
-        server_process = child_process.spawn(command, args);
+        writeEmitter.fire(`\x1B[1m> Executing the CodeChat Server: ${command} ${args.join(" ")} <\x1B[0m\n\r\n\r`)
+        let post_str = "\n\r\n\rThis terminal will be reused by the CodeChat Server; to restart the server, re-run the CodeChat extension. To close this terminal, press any key.\x1B[0m\n\r\n\r";
+        try {
+            // Preserve the size from the last server process, if known.
+            server_process = node_pty.spawn(command, args, {rows: server_process?.rows, cols: server_process?.cols});
+        } catch (err) {
+            writeEmitter.fire(`\x1B[1m> While running the CodeChat server: ${err} <${post_str}`)
+            server_process = undefined;
+            return;
+        }
+        writeEmitter.fire("\x1B[1mPress any key to stop the server.\x1B[0m\n\r\n\r")
+        exit_code = undefined;
+        assert(server_process);
 
         // Handle events.
-        let post_str = "\n\r\n\rThis terminal will be reused by the CodeChat Server; to restart the server, re-run the CodeChat extension. To close this terminal, press any key.\x1B[0m\n\r\n\r";
-        server_process.on("error", (err: NodeJS.ErrnoException) => {
-            let msg = err.code === "ENOENT" ? `Error - cannot find the file ${err.path}` : err;
-            writeEmitter.fire(`\n\r\n\r\x1B[1m> While running CodeChat server: ${msg} <${post_str}`)
-        });
-        server_process.on("exit", (code, signal) => {
-            let exit_str = code ? `code ${code}` : `signal ${signal}`;
+        server_process.onExit(({exitCode, signal}) => {
+            let exit_str = exitCode ? `code ${exitCode}` : `signal ${signal}`;
             writeEmitter.fire(`\n\r\n\r\x1B[1m> CodeChat Server exited with ${exit_str}. <${post_str}`);
             server_process = undefined;
+            exit_code = exitCode;
         });
-        assert(server_process.stdout !== null);
-        server_process.stdout.on("data", (chunk) => writeEmitter.fire(chunk.toString()));
+        let is_first_write = true;
+        server_process.onData((chunk) => {
+            let msg = chunk.toString();
+            if (is_first_write) {
+                // On the first write, the pty wants to clear the screen. This erases the messages we just wrote! Omit it. The typical string is ``\x1B[2J\x1B[m\x1B[H<actual text here...>``.
+                msg = msg.substring(10);
+                is_first_write = false;
+            }
+            writeEmitter.fire(msg)
+        });
     };
 
     const pty: vscode.Pseudoterminal = {
         onDidWrite: writeEmitter.event,
         onDidClose: closeEmitter.event,
+        onDidOverrideDimensions: dimensionsEmitter.event,
         // Important: don't run the server until this event is called; otherwise, the terminal isn't ready and will ignore any text sent to it. See the ``open`` method of `Pseudoterminal <https://code.visualstudio.com/api/references/vscode-api#Pseudoterminal>`_.
-        open: run_server,
+        open: (initialDimensions) => {
+            // A frustration: I can't find a way to get VSCode to tell me the current dimensions of the terminal. On open, it's not provided; firing the ``dimensionsEmmitter`` allows me to shrink it, but not get the actual size. Manually resizing the terminal does work.
+            if (initialDimensions !== undefined) {
+                server_process?.resize(initialDimensions.columns, initialDimensions.rows);
+            }
+            run_server();
+        },
         close: () => {
             server_process?.kill();
             server_process = undefined;
@@ -432,7 +479,11 @@ function create_CodeChat_terminal() {
                 // The server isn't running. Close the window.
                 closeEmitter.fire(0);
             }
-        }
+        },
+        // Handle terminal window resizing.
+        setDimensions(dimensions) {
+            server_process?.resize(dimensions.columns, dimensions.rows);
+        },
     };
 
     const terminal = vscode.window.createTerminal({name: "CodeChat Server", pty});
