@@ -46,7 +46,7 @@ let percent_regex = new RegExp(
 );
 
 // Core client
-// ==========
+// ===========
 // Given an ID to use, run the CodeChat Client.
 function run_client(
     // The ID of the CodeChat Client for this window.
