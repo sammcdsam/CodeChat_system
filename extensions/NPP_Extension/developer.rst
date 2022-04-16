@@ -18,7 +18,7 @@ These Tools are what are needed to build the thrift includes and libraries to be
 #. `thrift-0.15.0.exe <http://archive.apache.org/dist/thrift/0.15.0>`_
 #. `thrift 0.15.0 source code <https://github.com/apache/thrift/releases>`_
 #. `win_flex_bison <https://github.com/lexxmark/winflexbison/releases/tag/v2.5.25>`_
-#. `Boost 1.53.0 <https://sourceforge.net/projects/boost>`_
+#. `Boost 1.53.0 <https://sourceforge.net/projects/boost/files/boost/1.53.0/boost_1_53_0.zip/download>`_
 #. `libevent <https://github.com/libevent/libevent/releases>`_
 
 Installing necessary libraries
@@ -43,10 +43,10 @@ My folders inside of my **"C:/src"** directory looks like this:
 Installing Boost
 ````````````````
 To install boost:
-#. Open up your **Developer Command Prompt** (`windows key + R` and then `cmd`)
+#. Open up your **Developer Command Prompt** (Search for Developer Command Prompt for VS in the search bar) 
 #. Change your directory to boost (**"cd C:/src/boost/tools/build/v2"**)
 #. run "bootstrap.bat"
-#. enter "./b2 install --prefix=PREFIX install"
+#. enter "b2 install --prefix=PREFIX install"
 
 Installing libevent
 ```````````````````
@@ -100,3 +100,35 @@ Right Click on libthrift and select properties
 Inside of THttpClient.cpp change `config.h` to `windows/config.h`
 
 This, unfortunately, does not completely resolve errors in compilation. The Visual Studio 2022 build output lists multiple files as not existing, taking an immense amount of time to sort through.
+
+Creating the Notepad++ Plugin DLL
+----------------------------------
+
+Tutorial 
+https://npp-user-manual.org/docs/plugins/ 
+
+Open CodeChat.vcproj in your Visual Studio.
+Define your plugin commands number in PluginDefinition.h
+Customize plugin commands names and associated function name (and the other stuff, optional) in PluginDefinition.cpp.
+Define the associated functions.
+
+Build the files in visual studio. (If you press the "run" button it builds the file, but gives an error this is ok because you cant run the .dll outside of Notepad++)
+
+Open NotePad++ in debug mode.  (These are the official steps - I could not get the Notepad Debug .exe to work. I just followed the steps with the normal notepad.exe worked)
+    - Download the debug mode 32 bit version here https://notepad-plus-plus.org/assets/pluginListTestTools/npp.debug.x32.zip]
+    - Copy that version of the exe to your Notedpad++ program folder
+    - Download https://notepad-plus-plus.org/assets/pluginListTestTools/wingup.release.x32.zip
+    - Copy that version of GUP.exe to Notepad++/updater/
+    - Copy the pl.x86.json file from NPP_Extension/basic_plugin into Notepad++/plugins/Config/
+
+    - Select plugins from the top menu and open the plugin folder
+    - Create a folder called CodeChat
+    - Add your Codechat.dll to the CodeChat folder
+
+CodeChat should appear in the plugins list with the option for a hello world
+Currently the plugin creates a new file that says Hello, Notepad++
+
+
+    
+    
+    
