@@ -42,17 +42,16 @@ class EditorPluginHandler : virtual public EditorPluginIf {
 
 };
 
-//int main(int argc, char **argv) {
-  //int port = 27376;
-  //::std::shared_ptr<EditorPluginHandler> handler(new EditorPluginHandler());
-  //::std::shared_ptr<TProcessor> processor(new EditorPluginProcessor(handler));
-  //::std::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
-  //::std::shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
-  //::std::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
-//
-//
-  //TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
-  //server.serve();
-  //return 0;
-//}
+int main(int argc, char **argv) {
+  int port = 27376;
+  ::std::shared_ptr<EditorPluginHandler> handler(new EditorPluginHandler());
+  ::std::shared_ptr<TProcessor> processor(new EditorPluginProcessor(handler));
+  ::std::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
+  ::std::shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
+  ::std::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
+
+  TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+  server.serve();
+  return 0;
+}
 
