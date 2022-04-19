@@ -6,7 +6,8 @@
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
-#include "CodeChat_Services/CodeChat_Services.thrift"
+#include "Calculator.h"
+//#include "CodeChat_Services/CodeChat_Services.thrift"
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -41,16 +42,17 @@ class EditorPluginHandler : virtual public EditorPluginIf {
 
 };
 
-int main(int argc, char **argv) {
-  int port = THRIFT_PORT;
-  ::std::shared_ptr<EditorPluginHandler> handler(new EditorPluginHandler());
-  ::std::shared_ptr<TProcessor> processor(new EditorPluginProcessor(handler));
-  ::std::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
-  ::std::shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
-  ::std::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
-
-  TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
-  server.serve();
-  return 0;
-}
+//int main(int argc, char **argv) {
+  //int port = 27376;
+  //::std::shared_ptr<EditorPluginHandler> handler(new EditorPluginHandler());
+  //::std::shared_ptr<TProcessor> processor(new EditorPluginProcessor(handler));
+  //::std::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
+  //::std::shared_ptr<TTransportFactory> transportFactory(new TBufferedTransportFactory());
+  //::std::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
+//
+//
+  //TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
+  //server.serve();
+  //return 0;
+//}
 
