@@ -17,7 +17,7 @@ You will need the following on your Windows system for npp/codechat extension de
 [CodeChat](https://codechat-system.readthedocs.io/en/latest/CodeChat_Server/install.html)
 
 ## Installing Codechat
-
+sourc
 1. **Install Python** (Note: These directions apply to the Windows Store install of Python. If you install from the web, you need to replace "python" in the following commands with "py" and [make sure Python is in the PATH](https://datatofish.com/add-python-to-windows-path/), possibly by simply checking the “Add Python 3.x to PATH” box, during installation.
 
 2. **Open Windows terminal.** *Be sure to perform the following in Command Prompt, not Powershell*
@@ -32,7 +32,10 @@ python -m venv codechat
 
 5. **Activate this virtual environment**
 
+ Windows 
 .\codechat\Scripts\activate
+ Ubuntu 
+ source codechat/bin/activate
 
 6. **Install the CodeChat Server**
 
