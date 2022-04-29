@@ -82,11 +82,11 @@ export function activate(context: vscode.ExtensionContext) {
                 viewColumn: vscode.ViewColumn.Beside, 
                 preview: true,
                 preserveFocus: true,
-                selection: new vscode.Selection(new vscode.Position(0, 0), new vscode.Position(0, 0))
+                selection: new vscode.Selection(new vscode.Position(23, 0), new vscode.Position(24, 0))
             };
-            await vscode.window.showTextDocument(previewDoc,previewEditorShowOptions);
+             let editor = await vscode.window.showTextDocument(previewDoc,previewEditorShowOptions);
             // let activeTextEditor = vscode.window.activeTextEditor;
-            // provider.show(fileName, activeTextEditor.document.uri, activeTextEditor.selections);
+            // provider.show(fileNaπme, activeTextEditor.document.uri, activeTextEditor.selections);
                 // let previewDocument = await vscode.workspace.openTextDocument(previewUri);
                 // let previewEditorShowOptions: vscode.TextDocumentShowOptions = {
                 //     viewColumn: vscode.ViewColumn.Beside, 
@@ -335,6 +335,8 @@ function start_render() {
         idle_timer = setTimeout(() => {
             if (can_render()) {
                 console.log(`CodeChat extension: starting render.`);
+                // Sam: Uncomment this out to run gotoFile in server.py
+                // thrift_client!.gotoFile(codechat_client_id!)
                 thrift_client!.start_render(
                     vscode.window.activeTextEditor!.document.getText(),
                     vscode.window.activeTextEditor!.document.fileName,

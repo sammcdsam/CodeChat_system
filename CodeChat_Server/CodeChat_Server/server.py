@@ -73,6 +73,9 @@ class CodeChatHandler:
         self.render_manager: render_manager.RenderManager
         self.insecure: bool
 
+    def gotoFile(self,id_):
+        print("Hello")
+        
     # _`get_client`: Return the HTML for a web client.
     def get_client(self, codeChat_client_location: int) -> RenderClientReturn:
         try:
@@ -134,6 +137,10 @@ class CodeChatHandler:
             # Indicate an error by returning a non-emptry string.
             return "Shutting down."
         return ""
+
+    def gotoFile(self, id_) -> str:
+        logger.info("go to file()\n")
+        return "test"
 
     # Render the provided text to HTML, then enqueue it for the web view.
     def start_render(self, text: str, path: str, id: int, is_dirty: bool) -> str:
