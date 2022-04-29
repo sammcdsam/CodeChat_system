@@ -13,9 +13,14 @@ Change Log
 **********
 -   `Github master <https://github.com/bjones1/CodeChat_system.git>`_:
 
+    -   No changes yet.
+
+-   0.2.4, 19-Apr-2022:
+
     -   Improve use of stdout/stderr.
     -   Add a ``--version`` option.
     -   Make running an external renderer more platform-independent.
+    -   Upgrade to Thrift 0.16.0.
 
 -   0.2.3, 6-Feb-2022:
 
